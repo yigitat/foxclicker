@@ -10,19 +10,37 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body oncontextmenu="return false">
     <!-- Login Modal -->
     <div id="login-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="fox-logo-large">🦊</div>
             <h1 id="login-title">FoxClicker</h1>
             <p id="login-desc" class="login-desc">Maceraya katılmak için bir isim gir.</p>
-            <p id="login-desc" class="login-desc">Enter a name to join the adventure.</p>
-            <p id="login-desc" class="login-desc">Kullanıcı adınızı doğru girdiğinizden emin olunuz !</p>
-            <p id="login-desc" class="login-desc">Make sure you have entered your username correctly!</p>
             <input type="text" id="username-input" placeholder="Kullanıcı Adı / Username" autocomplete="on"
                 maxlength="15">
-            <button id="login-btn" class="primary-btn">Oyuna Başla / Start Game</button>
+            <button id="login-btn" class="primary-btn">Oyuna Başla</button>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal" class="modal-overlay hidden">
+        <div class="modal-content leaderboard-content">
+            <div class="modal-header">
+                <h2 id="lb-title">🏆 Sıralama</h2>
+                <button id="close-lb-btn" class="close-btn">✖</button>
+            </div>
+            <div class="lb-list-container">
+                <div class="lb-header">
+                    <span id="lb-col-rank">#</span>
+                    <span id="lb-col-name">Oyuncu</span>
+                    <span id="lb-col-score" style="text-align: right;">Skor</span>
+                </div>
+                <div id="lb-list" class="lb-list">
+                    <div style="padding: 1rem; text-align: center; color: var(--text-muted);" id="lb-loading">
+                        Yükleniyor...</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -33,7 +51,10 @@
             <span id="player-name">Player</span>
             <button id="logout-btn" class="logout-btn">Çıkış</button>
         </div>
-        <button id="lang-btn" class="lang-switcher">🇬🇧 EN</button>
+        <div class="top-actions">
+            <button id="leaderboard-btn" class="action-btn">🏆 <span id="lb-btn-text">Sıralama</span></button>
+            <button id="lang-btn" class="lang-switcher">🇬🇧 EN</button>
+        </div>
     </div>
 
     <div class="container">
@@ -62,16 +83,24 @@
         <!-- Sağ Taraf - Market Alanı -->
         <div class="shop-area">
             <h2 class="shop-title" id="shop-title-text">Yetenek Market <span class="shop-icon">🛒</span></h2>
+            <div class="shop-tabs">
+                <button id="tab-upgrades" class="shop-tab active">Yetenekler</button>
+                <button id="tab-vip" class="shop-tab">VIP</button>
+            </div>
             <div class="upgrades-list" id="upgrades-container">
                 <!-- Javascript ile Doldurulacak -->
             </div>
+            <div class="upgrades-list hidden" id="vip-container">
+                <!-- Javascript VIP ile Doldurulacak -->
+            </div>
             <div class="sys-buttons">
+                <button id="save-btn" class="save-btn" style="margin-bottom: 0.5rem;">Oyunu Kaydet</button>
                 <button id="reset-btn" class="danger-btn">İlerlemeyi Sıfırla</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>
