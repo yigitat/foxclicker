@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoxClicker</title>
+    <link rel="icon" href="images/icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="fox-logo-large">🦊</div>
+            <h1 id="login-title">FoxClicker</h1>
+            <p id="login-desc" class="login-desc">Maceraya katılmak için bir isim gir.</p>
+            <p id="login-desc" class="login-desc">Enter a name to join the adventure.</p>
+            <p id="login-desc" class="login-desc">Kullanıcı adınızı doğru girdiğinizden emin olunuz !</p>
+            <p id="login-desc" class="login-desc">Make sure you have entered your username correctly!</p>
+            <input type="text" id="username-input" placeholder="Kullanıcı Adı / Username" autocomplete="on"
+                maxlength="15">
+            <button id="login-btn" class="primary-btn">Oyuna Başla / Start Game</button>
+        </div>
+    </div>
+
+    <!-- Top Bar: Lang & Profile -->
+    <div class="top-bar">
+        <div id="profile-widget" class="profile-widget hidden">
+            <span class="profile-icon">👤</span>
+            <span id="player-name">Player</span>
+            <button id="logout-btn" class="logout-btn">Çıkış</button>
+        </div>
+        <button id="lang-btn" class="lang-switcher">🇬🇧 EN</button>
+    </div>
+
+    <div class="container">
+        <!-- Sol Taraf - Tıklama Alanı -->
+        <div class="click-area">
+            <div class="score-container">
+                <div class="score-title">FoxCoin</div>
+                <div class="score-value" id="score">0</div>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-label" id="label-per-second">Saniyede:</span>
+                        <span class="stat-val" id="auto-click-rate">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label" id="label-click-power">Tıklama Gücü:</span>
+                        <span class="stat-val" id="click-power-rate">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fox-container">
+                <button id="fox-button" class="fox-btn">🦊</button>
+            </div>
+        </div>
+
+        <!-- Sağ Taraf - Market Alanı -->
+        <div class="shop-area">
+            <h2 class="shop-title" id="shop-title-text">Yetenek Market <span class="shop-icon">🛒</span></h2>
+            <div class="upgrades-list" id="upgrades-container">
+                <!-- Javascript ile Doldurulacak -->
+            </div>
+            <div class="sys-buttons">
+                <button id="reset-btn" class="danger-btn">İlerlemeyi Sıfırla</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
