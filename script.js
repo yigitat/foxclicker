@@ -1,3 +1,30 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Anti-Inspect & Anti-Cheat System
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDeTjRgczPOAkVc-TcjEbLqIQuis9xER0A",
+    authDomain: "foxclicker-c6619.firebaseapp.com",
+    projectId: "foxclicker-c6619",
+    storageBucket: "foxclicker-c6619.firebasestorage.app",
+    messagingSenderId: "70910520701",
+    appId: "1:70910520701:web:6cdee7872778c77a563014",
+    measurementId: "G-98W3FP5Z4V"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const translations = {
     tr: {
         perSecond: "Saniyede:",
@@ -6,18 +33,30 @@ const translations = {
         resetBtn: "İlerlemeyi Sıfırla",
         confirmReset: "Tüm ilerlemeniz silinecek. Emin misiniz?",
         loginTitle: "FoxClicker",
-        loginDesc: "Maceraya katılmak için bir isim gir. / Enter a name to join the adventure.",
-        loginBtn: "Oyuna Başla / Start Playing",
-        logoutBtn: "Çıkış / Logout",
-        inputPlaceholder: "Kullanıcı Adı / Username",
+        loginDesc: "Maceraya katılmak için bir isim gir.",
+        loginBtn: "Oyuna Başla",
+        logoutBtn: "Çıkış",
+        inputPlaceholder: "Kullanıcı Adı",
+        lbBtnText: "Sıralama",
+        lbTitle: "🏆 Sıralama",
+        lbLoading: "Yükleniyor...",
+        lbRank: "#",
+        lbName: "Oyuncu",
+        lbScore: "Skor",
+        tabUpgrades: "Yetenekler",
+        saveBtn: "Oyunu Kaydet",
         upgrades: {
             upg1: { name: "Keskin Pençeler", desc: "Tıklama gücünü 1 artırır" },
             upg2: { name: "Sihirli Böğürtlen", desc: "Tıklama gücünü 5 artırır" },
             upg3: { name: "Altın Kuyruk", desc: "Tıklama gücünü 25 artırır" },
-            upg4: { name: "Yavru Tilki", desc: "Saniyede 1 tık yapar (10sn limit yok, saniyede işler)" },
+            upg4: { name: "Yavru Tilki", desc: "Saniyede 1 tık yapar" },
             upg5: { name: "Tilki Arkadaş", desc: "Saniyede 5 tık yapar" },
             upg6: { name: "Tilki Sürüsü", desc: "Saniyede 25 tık yapar" },
-            upg7: { name: "Orman Ruhu", desc: "Saniyede 150 tık yapar" }
+            upg7: { name: "Orman Ruhu", desc: "Saniyede 150 tık yapar" },
+            vip1: { name: "Bronze VIP", desc: "Saniyede 1.000 tık yapar." },
+            vip2: { name: "Silver VIP", desc: "Saniyede 10.000 tık yapar." },
+            vip3: { name: "Gold VIP", desc: "Saniyede 100.000 tık yapar." },
+            vip4: { name: "Fox Lord VIP", desc: "Saniyede 1.000.000 tık yapar." }
         }
     },
     en: {
@@ -27,10 +66,18 @@ const translations = {
         resetBtn: "Reset Progress",
         confirmReset: "All your progress will be deleted. Are you sure?",
         loginTitle: "FoxClicker",
-        loginDesc: "Enter a name to join the adventure. / Maceraya katılmak için bir isim gir.",
-        loginBtn: "Start Playing / Oyuna Başla",
-        logoutBtn: "Logout / Çıkış",
-        inputPlaceholder: "Username / Kullanıcı Adı",
+        loginDesc: "Enter a name to join the adventure.",
+        loginBtn: "Start Playing",
+        logoutBtn: "Logout",
+        inputPlaceholder: "Username",
+        lbBtnText: "Leaderboard",
+        lbTitle: "🏆 Leaderboard",
+        lbLoading: "Loading...",
+        lbRank: "#",
+        lbName: "Player",
+        lbScore: "Score",
+        tabUpgrades: "Upgrades",
+        saveBtn: "Save Game",
         upgrades: {
             upg1: { name: "Sharp Claws", desc: "Increases click power by 1" },
             upg2: { name: "Magic Berry", desc: "Increases click power by 5" },
@@ -38,7 +85,11 @@ const translations = {
             upg4: { name: "Baby Fox", desc: "Clicks 1 time per second" },
             upg5: { name: "Fox Friend", desc: "Clicks 5 times per second" },
             upg6: { name: "Fox Pack", desc: "Clicks 25 times per second" },
-            upg7: { name: "Forest Spirit", desc: "Clicks 150 times per second" }
+            upg7: { name: "Forest Spirit", desc: "Clicks 150 times per second" },
+            vip1: { name: "Bronze VIP", desc: "Clicks 1,000 times per second" },
+            vip2: { name: "Silver VIP", desc: "Clicks 10,000 times per second" },
+            vip3: { name: "Gold VIP", desc: "Clicks 100,000 times per second" },
+            vip4: { name: "Fox Lord VIP", desc: "Clicks 1,000,000 times per second" }
         }
     }
 };
@@ -49,6 +100,8 @@ const getInitialState = () => ({
     clickPower: 1,
     autoClicksPerSecond: 0,
     language: 'tr',
+    vipHighestTier: 0,
+    vipHighestName: '',
     upgrades: [
         // Click Upgrades
         { id: 'upg1', cost: 15, costMultiplier: 1.5, type: 'click', value: 1, count: 0, icon: '🐾' },
@@ -60,6 +113,12 @@ const getInitialState = () => ({
         { id: 'upg5', cost: 500, costMultiplier: 1.5, type: 'auto', value: 5, count: 0, icon: '🤝' },
         { id: 'upg6', cost: 4000, costMultiplier: 1.6, type: 'auto', value: 25, count: 0, icon: '🌲' },
         { id: 'upg7', cost: 20000, costMultiplier: 1.7, type: 'auto', value: 150, count: 0, icon: '👻' },
+
+        // VIP Upgrades
+        { id: 'vip1', cost: 1000000, costMultiplier: 1, type: 'vip', value: 1000, count: 0, icon: '🥉', vipName: 'Bronze', vipTier: 1 },
+        { id: 'vip2', cost: 10000000, costMultiplier: 1, type: 'vip', value: 10000, count: 0, icon: '🥈', vipName: 'Silver', vipTier: 2 },
+        { id: 'vip3', cost: 100000000, costMultiplier: 1, type: 'vip', value: 100000, count: 0, icon: '🥇', vipName: 'Gold', vipTier: 3 },
+        { id: 'vip4', cost: 1000000000, costMultiplier: 1, type: 'vip', value: 1000000, count: 0, icon: '👑', vipName: 'Lord', vipTier: 4 }
     ]
 });
 
@@ -73,11 +132,15 @@ const clickPowerEl = document.getElementById('click-power-rate');
 const foxBtn = document.getElementById('fox-button');
 const foxContainer = document.querySelector('.fox-container');
 const upgradesContainer = document.getElementById('upgrades-container');
+const vipContainer = document.getElementById('vip-container');
 const resetBtn = document.getElementById('reset-btn');
 const langBtn = document.getElementById('lang-btn');
 const labelPerSecond = document.getElementById('label-per-second');
 const labelClickPower = document.getElementById('label-click-power');
 const shopTitleText = document.getElementById('shop-title-text');
+const tabUpgrades = document.getElementById('tab-upgrades');
+const tabVip = document.getElementById('tab-vip');
+const saveBtn = document.getElementById('save-btn');
 
 // Login Elements
 const loginModal = document.getElementById('login-modal');
@@ -89,12 +152,25 @@ const logoutBtn = document.getElementById('logout-btn');
 const loginTitle = document.getElementById('login-title');
 const loginDesc = document.getElementById('login-desc');
 
+// Leaderboard Elements
+const leaderboardModal = document.getElementById('leaderboard-modal');
+const leaderboardBtn = document.getElementById('leaderboard-btn');
+const closeLbBtn = document.getElementById('close-lb-btn');
+const lbList = document.getElementById('lb-list');
+const lbBtnText = document.getElementById('lb-btn-text');
+const lbTitle = document.getElementById('lb-title');
+const lbColRank = document.getElementById('lb-col-rank');
+const lbColName = document.getElementById('lb-col-name');
+const lbColScore = document.getElementById('lb-col-score');
+
 function applyLanguage() {
     const t = translations[gameState.language];
     labelPerSecond.textContent = t.perSecond;
     labelClickPower.textContent = t.clickPower;
     shopTitleText.innerHTML = t.shopTitle;
     resetBtn.textContent = t.resetBtn;
+    if (tabUpgrades) tabUpgrades.textContent = t.tabUpgrades;
+    if (saveBtn) saveBtn.textContent = t.saveBtn;
 
     // Auth UI
     if (loginTitle) loginTitle.textContent = t.loginTitle;
@@ -102,6 +178,14 @@ function applyLanguage() {
     if (loginBtn) loginBtn.textContent = t.loginBtn;
     if (logoutBtn) logoutBtn.textContent = t.logoutBtn;
     if (usernameInput) usernameInput.placeholder = t.inputPlaceholder;
+
+    // Leaderboard UI
+    if (lbBtnText) lbBtnText.textContent = t.lbBtnText;
+    if (lbTitle) lbTitle.textContent = t.lbTitle;
+    if (lbColRank) lbColRank.textContent = t.lbRank;
+    if (lbColName) lbColName.textContent = t.lbName;
+    if (lbColScore) lbColScore.textContent = t.lbScore;
+    if (lbList.querySelector('#lb-loading')) lbList.querySelector('#lb-loading').textContent = t.lbLoading;
 
     if (gameState.language === 'tr') {
         langBtn.innerHTML = '🇬🇧 EN';
@@ -137,18 +221,30 @@ function initAuth() {
     }
 }
 
-function login(username) {
+async function login(username) {
     username = username.trim().substring(0, 15);
     if (!username) return;
 
-    currentUser = username;
-    playerName.textContent = currentUser;
+    if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.textContent = (gameState.language === 'tr') ? "Yükleniyor..." : "Loading...";
+    }
+    if (usernameInput) usernameInput.disabled = true;
 
-    loginModal.classList.add('hidden');
-    profileWidget.classList.remove('hidden');
+    currentUser = username;
     localStorage.setItem('foxClickerLastUser', currentUser);
 
-    loadGame();
+    await loadGame();
+
+    playerName.textContent = currentUser;
+    loginModal.classList.add('hidden');
+    profileWidget.classList.remove('hidden');
+
+    if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = translations[gameState.language].loginBtn;
+    }
+    if (usernameInput) usernameInput.disabled = false;
 }
 
 function logout() {
@@ -183,25 +279,66 @@ if (logoutBtn) {
     logoutBtn.addEventListener('click', logout);
 }
 
-// Load Data
-function loadGame() {
-    if (!currentUser) return;
-    const saved = localStorage.getItem(`foxClickerSave_${currentUser}`);
+// State Merge Logic (Fixes old saves wiping out newly added VIP upgrades)
+function mergeStates(savedParsed) {
+    const base = getInitialState();
+    if (!savedParsed) return base;
 
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        if (!parsed.language) parsed.language = 'tr';
-        gameState = { ...getInitialState(), ...parsed };
+    let merged = { ...base, ...savedParsed };
+    // This part prevents older saves from overriding the upgrades array missing the new VIP upgrades!
+    if (savedParsed.upgrades) {
+        merged.upgrades = base.upgrades.map(baseUpg => {
+            const savedUpg = savedParsed.upgrades.find(u => u.id === baseUpg.id);
+            return savedUpg ? { ...baseUpg, ...savedUpg } : baseUpg;
+        });
     }
+    if (!merged.language) merged.language = 'tr';
+    return merged;
+}
+
+// Load Data
+async function loadGame() {
+    if (!currentUser) return;
+
+    try {
+        const docRef = doc(db, "users", currentUser);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            gameState = mergeStates(docSnap.data());
+        } else {
+            const saved = localStorage.getItem(`foxClickerSave_${currentUser}`);
+            if (saved) {
+                gameState = mergeStates(JSON.parse(saved));
+                saveGame();
+            } else {
+                gameState = getInitialState();
+            }
+        }
+    } catch (e) {
+        console.error("Error loading DB data: ", e);
+        const saved = localStorage.getItem(`foxClickerSave_${currentUser}`);
+        if (saved) {
+            gameState = mergeStates(JSON.parse(saved));
+        }
+    }
+
     applyLanguage();
     updateDisplay();
     renderUpgrades();
 }
 
 // Save Data
-function saveGame() {
+async function saveGame() {
     if (!currentUser) return;
+
     localStorage.setItem(`foxClickerSave_${currentUser}`, JSON.stringify(gameState));
+
+    try {
+        await setDoc(doc(db, "users", currentUser), gameState);
+    } catch (e) {
+        console.error("Error saving to DB: ", e);
+    }
 }
 
 // Format Numbers
@@ -277,6 +414,7 @@ function createFloatingText(e) {
 // Render Market
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
+    vipContainer.innerHTML = '';
     const t = translations[gameState.language].upgrades;
 
     gameState.upgrades.forEach((upg, index) => {
@@ -284,23 +422,45 @@ function renderUpgrades() {
         card.id = `upg-card-${index}`;
         card.classList.add('upgrade-card');
 
+        if (upg.type === 'vip') {
+            card.classList.add(`vip-item-${upg.vipName}`);
+            if (upg.count > 0) {
+                card.classList.add('owned-vip');
+            }
+        }
+
         const upgText = t[upg.id];
+        const displayCount = upg.type === 'vip' ? (upg.count > 0 ? '✓' : '') : upg.count;
+        const displayPrice = upg.type === 'vip' && upg.count > 0 ? (gameState.language === 'tr' ? 'SATIN ALINDI' : 'OWNED') : `💎 ${formatNumber(upg.cost)}`;
 
         card.innerHTML = `
             <div class="upg-icon">${upg.icon}</div>
             <div class="upg-details">
                 <div class="upg-header">
                     <span class="upg-name">${upgText.name}</span>
-                    <span class="upg-count">${upg.count}</span>
+                    <span class="upg-count">${displayCount}</span>
                 </div>
                 <div class="upg-desc">${upgText.desc}</div>
-                <div class="upg-price">💎 ${formatNumber(upg.cost)}</div>
+                <div class="upg-price">${displayPrice}</div>
             </div>
         `;
 
         card.addEventListener('click', () => buyUpgrade(index));
-        upgradesContainer.appendChild(card);
+
+        if (upg.type === 'vip') {
+            vipContainer.appendChild(card);
+        } else {
+            upgradesContainer.appendChild(card);
+        }
     });
+
+    if (tabVip && tabVip.classList.contains('active')) {
+        vipContainer.classList.remove('hidden');
+        upgradesContainer.classList.add('hidden');
+    } else {
+        upgradesContainer.classList.remove('hidden');
+        vipContainer.classList.add('hidden');
+    }
 
     checkUpgradesAffordability();
 }
@@ -310,6 +470,13 @@ function checkUpgradesAffordability() {
     gameState.upgrades.forEach((upg, index) => {
         const card = document.getElementById(`upg-card-${index}`);
         if (!card) return;
+
+        if (upg.type === 'vip' && upg.count > 0) {
+            card.classList.add('owned-vip');
+            card.classList.remove('disabled');
+            card.classList.remove('affordable');
+            return;
+        }
 
         if (gameState.score >= upg.cost) {
             card.classList.remove('disabled');
@@ -326,18 +493,28 @@ function buyUpgrade(index) {
     if (!currentUser) return;
     const upg = gameState.upgrades[index];
 
+    if (upg.type === 'vip' && upg.count >= 1) return;
+
     if (gameState.score >= upg.cost) {
         gameState.score -= upg.cost;
         upg.count++;
 
         // Increase cost
-        upg.cost = Math.floor(upg.cost * upg.costMultiplier);
+        if (upg.type !== 'vip') {
+            upg.cost = Math.floor(upg.cost * upg.costMultiplier);
+        }
 
         // Apply effects
         if (upg.type === 'click') {
             gameState.clickPower += upg.value;
-        } else if (upg.type === 'auto') {
+        } else if (upg.type === 'auto' || upg.type === 'vip') {
             gameState.autoClicksPerSecond += upg.value;
+            if (upg.type === 'vip') {
+                if (upg.vipTier > (gameState.vipHighestTier || 0)) {
+                    gameState.vipHighestTier = upg.vipTier;
+                    gameState.vipHighestName = upg.vipName;
+                }
+            }
         }
 
         renderUpgrades();
@@ -361,12 +538,18 @@ setInterval(() => {
 }, 10000);
 
 // Reset functionality
-resetBtn.addEventListener('click', () => {
+resetBtn.addEventListener('click', async () => {
     if (!currentUser) return;
     const t = translations[gameState.language];
     if (confirm(t.confirmReset)) {
         localStorage.removeItem(`foxClickerSave_${currentUser}`);
-        logout();
+        try {
+            await deleteDoc(doc(db, "users", currentUser));
+        } catch (e) {
+            console.error(e);
+        }
+        currentUser = null;
+        localStorage.removeItem('foxClickerLastUser');
         location.reload();
     }
 });
@@ -374,6 +557,99 @@ resetBtn.addEventListener('click', () => {
 // Init
 window.addEventListener('blur', () => { if (currentUser) saveGame(); }); // Save prefix when changing tab
 window.addEventListener('beforeunload', () => { if (currentUser) saveGame(); }); // Save prefix when closing
+
+// Leaderboard Logic
+if (leaderboardBtn) {
+    leaderboardBtn.addEventListener('click', async () => {
+        leaderboardModal.classList.remove('hidden');
+        await populateLeaderboard();
+    });
+}
+if (closeLbBtn) {
+    closeLbBtn.addEventListener('click', () => {
+        leaderboardModal.classList.add('hidden');
+    });
+}
+
+// Shop Tabs Logic
+if (tabUpgrades) {
+    tabUpgrades.addEventListener('click', () => {
+        tabUpgrades.classList.add('active');
+        tabVip.classList.remove('active');
+        upgradesContainer.classList.remove('hidden');
+        vipContainer.classList.add('hidden');
+    });
+}
+if (tabVip) {
+    tabVip.addEventListener('click', () => {
+        tabVip.classList.add('active');
+        tabUpgrades.classList.remove('active');
+        vipContainer.classList.remove('hidden');
+        upgradesContainer.classList.add('hidden');
+    });
+}
+
+// Manual Save Logic
+if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+        if (!currentUser) return;
+        saveBtn.disabled = true;
+        const oText = saveBtn.textContent;
+        saveBtn.textContent = gameState.language === 'tr' ? 'Kaydediliyor...' : 'Saving...';
+        await saveGame();
+        saveBtn.textContent = gameState.language === 'tr' ? 'Tüm Datalar Kaydedildi!' : 'All Data Saved!';
+        setTimeout(() => {
+            saveBtn.textContent = translations[gameState.language].saveBtn;
+            saveBtn.disabled = false;
+        }, 2000);
+    });
+}
+
+async function populateLeaderboard() {
+    const t = translations[gameState.language];
+    lbList.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted);" id="lb-loading">${t.lbLoading}</div>`;
+
+    try {
+        const q = query(collection(db, "users"), orderBy("score", "desc"), limit(50));
+        const querySnapshot = await getDocs(q);
+
+        lbList.innerHTML = '';
+        let rank = 1;
+
+        if (querySnapshot.empty) {
+            lbList.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted);">${gameState.language === 'tr' ? 'Henüz oyuncu yok.' : 'No players yet.'}</div>`;
+            return;
+        }
+
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const username = docSnap.id;
+
+            const item = document.createElement('div');
+            item.className = `lb-item rank-${rank}`;
+
+            let vipHtml = '';
+            if (data.vipHighestTier > 0) {
+                const badgeClass = `vip-${data.vipHighestName.toLowerCase()}`;
+                vipHtml = `<span class="vip-badge ${badgeClass}">${data.vipHighestName} VIP</span>`;
+            }
+
+            item.innerHTML = `
+                <div class="lb-rank">${rank}</div>
+                <div class="lb-name">
+                    ${username} ${vipHtml}
+                </div>
+                <div class="lb-score">${formatNumber(data.score)}</div>
+            `;
+
+            lbList.appendChild(item);
+            rank++;
+        });
+    } catch (e) {
+        console.error("Error fetching leaderboard: ", e);
+        lbList.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--danger);">${gameState.language === 'tr' ? 'Sıralama yüklenemedi!' : 'Failed to load leaderboard!'}</div>`;
+    }
+}
 
 // Initialize App
 initAuth();
